@@ -1,0 +1,50 @@
+from typing import List,Sequence
+import os
+from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage,HumanMessage,AIMessage
+from langgraph.graph import START,END,MessageGraph
+from chains import generate_chain,reflection_chain
+load_dotenv()
+
+def generate_node(state:Sequence[BaseMessage])-> List[BaseMessage]:
+    response=generate_chain.invoke({"messages":state})
+    return response.content
+
+def reflection_node(state:Sequence[BaseMessage])-> List[BaseMessage]:
+    response=generate_chain.invoke({"messages":state})
+    return HumanMessage(content=response.content)
+
+Generate="Generate"
+Reflect="Reflect"
+
+builder=MessageGraph()
+builder.add_node(Generate,generate_node)
+builder.add_node(Reflect,reflection_node)
+builder.set_entry_point(Generate)
+
+def should_continue(state:List[BaseMessage]):
+    if len(state)>6:
+        return END
+    return Reflect
+
+builder.add_conditional_edges(Generate,should_continue)
+builder.add_edge(Reflect,Generate)
+
+graph=builder.compile()
+
+#print(graph.get_graph().draw_mermaid())
+graph.get_graph().print_ascii()
+
+if __name__== "__main__":
+    inputs=HumanMessage(content="Tell me a Joke on Data Science")
+    response=graph.invoke(inputs)
+
+
+
+
+
+
+
+
+
+
