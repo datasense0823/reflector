@@ -1,0 +1,21 @@
+from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
+from langchain_groq import ChatGroq
+
+llm= ChatGroq(temperature=0,model="mixtral-8x7b-32768")
+
+generation_prompt=ChatPromptTemplate.from_messages(
+    [("system","You are a Funny Standup Comedian. Create a Joke on Data Science and AI"),
+     MessagesPlaceholder(variable_name="messages")
+
+    ]
+)
+
+
+reflection_prompt=ChatPromptTemplate.from_messages(
+    [("system","You are a Joke Critic. Generate critique and recommendations for the user's joke. Always provide detailed recommendations, including requests for length, virality, style, etc "),
+     MessagesPlaceholder(variable_name="messages")
+    ]
+)
+
+generate_chain= generation_prompt | llm
+reflection_chain=reflection_prompt | llm
